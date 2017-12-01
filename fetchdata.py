@@ -9,6 +9,7 @@ import time
 # Import Functions
 # ------------------
 from queryscopus import get_affiliation_info
+from queryscopus import get_document
 from queryscopus import search_document
 from queryscopus import make_query_affiliation_id
 from queryscopus import make_query_author_id
@@ -61,6 +62,42 @@ def fetch_affiliation_info(affiliation_ids, api_keys):
             f.write('Affiliation {0} stopped.\n'.format(affiliation_id))
     finally:
         result = pd.DataFrame(aff_info)
+        return result
+
+
+def fetch_document_info(scopus_ids, api_keys):
+    if not (hasattr(scopus_ids, '__getitem__') and hasattr(scopus_ids, '__iter__')):
+        raise ValueError('affiliation_ids should be list-like object.')
+    if not (hasattr(api_keys, '__getitem__') and hasattr(api_keys, '__iter__')):
+        raise ValueError('api_keys should be list-like object.')
+    doc_info = dict()
+    doc_info['document'] = list()
+    doc_info['author'] = list()
+    doc_info['subject_area'] = list()
+    try:
+        api_key_i = 0
+        for scopus_id in scopus_ids:
+            quota_while = True
+            while quota_while:
+                try:
+                    doc = get_document(scopus_id, api_keys[api_key_i])
+                    quota_while = False
+                except QuotaExceeded:
+                    api_key_i += 1
+                    if api_key_i == len(api_keys):
+                        raise NoAvailableKeys('Usable key exhausted.')
+            doc_info['document'].append(doc['document'])
+            doc_info['subject_area'].extend(doc['subject_area'])
+            doc_info['author'].extend(doc['author'])
+    except (ConnectionError, NewConnectionError, MaxRetryError):
+        # if the network has problem, record the id of author and affiliation
+        with open('fetch_document_info_broken.txt', 'w') as f:
+            f.write('Document {0} stopped.\n'.format(doc['document']['scopus_id']))
+    finally:
+        result = dict()
+        result['document'] = pd.DataFrame(doc_info['document'])
+        result['subject_area'] = pd.DataFrame(doc_info['subject_area'])
+        result['author'] = pd.DataFrame(doc_info['author'])
         return result
 
 
@@ -133,25 +170,69 @@ def fetch_doc(affiliation_ids, author_ids, api_keys):
                 document.extend(
                     list(
                         zip(
-                            [x['dc:identifier'] if 'dc:identifier' in x else '' for x in doc_info['documents']],
-                            [x['article-number'] if 'article-number' in x else '' for x in doc_info['documents']],
-                            [x['dc:title'] if 'dc:title' in x else '' for x in doc_info['documents']],
-                            [x['eid'] if 'eid' in x else '' for x in doc_info['documents']],
-                            [x['citedby-count'] if 'citedby-count' in x else '' for x in doc_info['documents']],
-                            [x['dc:creator'] if 'dc:creator' in x else '' for x in doc_info['documents']],
-                            [x['prism:aggregationType'] if 'prism:aggregationType' in x else '' for x in doc_info['documents']],
-                            [x['prism:coverDate'] if 'prism:coverDate' in x else '' for x in doc_info['documents']],
-                            [x['prism:coverDisplayDate'] if 'prism:coverDisplayDate' in x else '' for x in doc_info['documents']],
-                            [x['prism:doi'] if 'prism:doi' in x else '' for x in doc_info['documents']],
-                            [x['prism:eIssn'] if 'prism:eIssn' in x else '' for x in doc_info['documents']],
-                            [x['prism:issn'] if 'prism:issn' in x else '' for x in doc_info['documents']],
-                            [x['prism:issueIdentifier'] if 'prism:issueIdentifier' in x else '' for x in doc_info['documents']],
-                            [x['prism:pageRange'] if 'prism:pageRange' in x else '' for x in doc_info['documents']],
-                            [x['prism:publicationName'] if 'prism:publicationName' in x else '' for x in doc_info['documents']],
-                            [x['prism:url'] if 'prism:url' in x else '' for x in doc_info['documents']],
-                            [x['prism:volume'] if 'prism:volume' in x else '' for x in doc_info['documents']],
-                            [x['subtype'] if 'subtype' in x else '' for x in doc_info['documents']],
-                            [x['subtypeDescription'] if 'subtypeDescription' in x else '' for x in doc_info['documents']],
+                            [
+                                x['dc:identifier'] if 'dc:identifier' in x else '' for x in doc_info['documents']
+                            ],
+                            [
+                                x['article-number'] if 'article-number' in x else '' for x in doc_info['documents']
+                            ],
+                            [
+                                x['dc:title'] if 'dc:title' in x else '' for x in doc_info['documents']
+                            ],
+                            [
+                                x['eid'] if 'eid' in x else '' for x in doc_info['documents']
+                            ],
+                            [
+                                x['citedby-count'] if 'citedby-count' in x else '' for x in doc_info['documents']
+                            ],
+                            [
+                                x['dc:creator'] if 'dc:creator' in x else '' for x in doc_info['documents']
+                            ],
+                            [
+                                x['prism:aggregationType'] if 'prism:aggregationType' in x else ''
+                                for x in doc_info['documents']
+                            ],
+                            [
+                                x['prism:coverDate'] if 'prism:coverDate' in x else ''
+                                for x in doc_info['documents']
+                            ],
+                            [
+                                x['prism:coverDisplayDate'] if 'prism:coverDisplayDate' in x else ''
+                                for x in doc_info['documents']
+                            ],
+                            [
+                                x['prism:doi'] if 'prism:doi' in x else '' for x in doc_info['documents']
+                            ],
+                            [
+                                x['prism:eIssn'] if 'prism:eIssn' in x else '' for x in doc_info['documents']
+                            ],
+                            [
+                                x['prism:issn'] if 'prism:issn' in x else '' for x in doc_info['documents']
+                            ],
+                            [
+                                x['prism:issueIdentifier'] if 'prism:issueIdentifier' in x else ''
+                                for x in doc_info['documents']
+                            ],
+                            [
+                                x['prism:pageRange'] if 'prism:pageRange' in x else '' for x in doc_info['documents']
+                            ],
+                            [
+                                x['prism:publicationName'] if 'prism:publicationName' in x else ''
+                                for x in doc_info['documents']
+                            ],
+                            [
+                                x['prism:url'] if 'prism:url' in x else '' for x in doc_info['documents']
+                            ],
+                            [
+                                x['prism:volume'] if 'prism:volume' in x else '' for x in doc_info['documents']
+                            ],
+                            [
+                                x['subtype'] if 'subtype' in x else '' for x in doc_info['documents']
+                            ],
+                            [
+                                x['subtypeDescription'] if 'subtypeDescription' in x else ''
+                                for x in doc_info['documents']
+                            ],
                         )
                     )
                 )
@@ -159,8 +240,10 @@ def fetch_doc(affiliation_ids, author_ids, api_keys):
                 # store document affiliation information
                 doc_affiliation_dict = dict(
                     zip(
-                        [x['dc:identifier'] if 'dc:identifier' in x else x['article_number'] for x in doc_info['documents'] if
-                         'affiliation' in x],
+                        [
+                            x['dc:identifier'] if 'dc:identifier' in x else x['article_number']
+                            for x in doc_info['documents'] if 'affiliation' in x
+                        ],
                         [x['affiliation'] for x in doc_info['documents'] if 'affiliation' in x]
                     )
                 )
@@ -212,7 +295,7 @@ def fetch_doc(affiliation_ids, author_ids, api_keys):
 # ------------------
 
 
-the_affiliation_id = '60014966'
+the_affiliation_id = '60014966'  # "Jilin University" ID 60007711
 the_api_keys = pd.read_csv('scopuskeys.txt', header=0)['apikey']
 
 university_info = get_affiliation_info(the_affiliation_id, the_api_keys[0])
@@ -243,7 +326,7 @@ author = pd.read_csv('author.csv', header=0)
 the_author_ids = author['Auth-ID']
 the_affiliation_ids = [the_affiliation_id] * author.shape[0]
 # fetch data
-fetched = fetch_doc(the_affiliation_ids[10557:], the_author_ids[10557:], the_api_keys)
+fetched = fetch_doc(the_affiliation_ids[13849:], the_author_ids[13849:], the_api_keys)
 fetched['author_doc'].to_csv('author_doc.csv', index=False)
 fetched['document'].to_csv('document.csv', index=False)
 fetched['doc_affiliation'].to_csv('doc_affiliation.csv', index=False)
@@ -251,4 +334,3 @@ fetched['doc_affiliation'].to_csv('doc_affiliation.csv', index=False)
 # ------------------
 # EOF
 # ------------------
-

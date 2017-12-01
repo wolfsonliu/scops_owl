@@ -111,7 +111,14 @@ def get_document(scopus_id, api_key):
         parsed_dict['document']['affiliation_city'] = doc_json['affiliation']['affiliation-city']
         parsed_dict['document']['affiliation_country'] = doc_json['affiliation']['affiliation-country']
         parsed_dict['subject_area'] = doc_json['subject-areas']['subject-area']
-        parsed_dict['author'] = doc_json['authors']['author']
+        parsed_dict['author'] = [
+            {
+                'author_id': x['@auid'], 'idxname': x['ce:indexed-name'], 'initialname': x['ce:initials'],
+                'surname': x['ce:surname'], 'givenname': x['ce:given-name'], 'rank': x['@seq'],
+                'affiliaion_id': x['affiliation']['@id']
+            }
+            for x in doc_json['authors']['author']
+        ]
         return parsed_dict
 
 
