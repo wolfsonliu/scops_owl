@@ -1,14 +1,25 @@
+# ------------------
+# Import Libraries
+# ------------------
 import requests
+# ------------------
 
 
+# ------------------
+# Errors
+# ------------------
 class InvalidInput(ValueError):
     pass
 
 
 class QuotaExceeded(ValueError):
     pass
+# ------------------
 
 
+# ------------------
+# Functions
+# ------------------
 def get_affiliation_info(affiliation_id, api_key):
     # get affiliation request
     # affiliation retrieval quota per week 5000
@@ -57,6 +68,7 @@ def get_affiliation_info(affiliation_id, api_key):
         return parsed_dict
 
 
+# ------------------
 def get_document(scopus_id, api_key):
     # get document request
     # abstract retrieval quota per week 10000
@@ -88,7 +100,11 @@ def get_document(scopus_id, api_key):
         doc_json = doc_url.json()['abstracts-retrieval-response']
         parsed_dict = dict()
         parsed_dict['document'] = dict()
-        parsed_dict['document']['scopus_id'] = doc_json['coredata']['dc:identifier'] if 'dc:identifier' in doc_json['coredata'] else ''
+        parsed_dict['document']['scopus_id'] = doc_json[
+            'coredata'
+        ][
+            'dc:identifier'
+        ] if 'dc:identifier' in doc_json['coredata'] else ''
         parsed_dict['document']['eid'] = doc_json['coredata']['eid'] if 'eid' in doc_json['coredata'] else ''
         parsed_dict['document']['pubmed_id'] = doc_json['coredata']['pubmed-id']
         parsed_dict['document']['pii'] = doc_json['coredata']['pii']
@@ -122,6 +138,7 @@ def get_document(scopus_id, api_key):
         return parsed_dict
 
 
+# ------------------
 def get_author(author_id, api_key):
     # author retrieval quota per week 5000
     au_url = requests.get(
@@ -167,14 +184,17 @@ def get_author(author_id, api_key):
         return parsed_dict
 
 
+# ------------------
 def make_query_affiliation_id(affiliation_id):
     return 'af-id(' + str(affiliation_id) + ')'
 
 
+# ------------------
 def make_query_author_id(author_id):
     return 'au-id(' + str(author_id) + ')'
 
 
+# ------------------
 def search_author(query, start, count, api_key):
     # author search quota per week 5000
     affau_url = requests.get(
@@ -214,6 +234,7 @@ def search_author(query, start, count, api_key):
         return result
 
 
+# ------------------
 def search_document(query, start, count, api_key):
     # scopus search quota per week 20000
     affdoc_url = requests.get(
@@ -251,7 +272,7 @@ def search_document(query, start, count, api_key):
         result['total_count'] = affdoc_json['search-results']['opensearch:totalResults']
         result['documents'] = affdoc_json['search-results']['entry']
         return result
-
+# ------------------
 
 # ------------------
 # EOF
