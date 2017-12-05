@@ -100,7 +100,7 @@ def fetch_document_info(scopus_ids, api_keys):
         return result
 
 
-def fetch_doc(affiliation_ids, author_ids, api_keys):
+def fetch_doc(affiliation_ids, author_ids, pubyear, yeardirection, api_keys):
     # input variables validation
     if not (hasattr(affiliation_ids, '__getitem__') and hasattr(affiliation_ids, '__iter__')):
         raise ValueError('affiliation_ids should be list-like object.')
@@ -110,15 +110,25 @@ def fetch_doc(affiliation_ids, author_ids, api_keys):
         raise ValueError('api_keys should be list-like object.')
     if len(affiliation_ids) != len(author_ids):
         raise UnmatchedLengthError('The length of affiliation_ids and author_ids should be the same.')
+    if yeardirection not in ['>', '=', '<']:
+        raise ValueError('yeardirection should be in >, =, <')
     # make store list
     author_doc = list()  # author_id, scopus_id
     document = list()  # scopus_id, title, eid, dc:creator, citedby_count
     doc_affiliation = list()  # scopus_id, affiliation_name, affiliation_city, affiliation_country
     api_key_i = 0
+    pubyearsearch = make_query_pubyear(pubyear, yeardirection)
     try:
         for author_id, affiliation_id in zip(author_ids, affiliation_ids):
             start = 0
             while_loop = True
+            query_seq = '+'.join(
+                [
+                    make_query_author_id(author_id),
+                    make_query_affiliation_id(affiliation_id),
+                    pubyearsearch
+                ]
+            )
             while while_loop:
                 quota_while = True
                 # api_key quota check
@@ -127,7 +137,7 @@ def fetch_doc(affiliation_ids, author_ids, api_keys):
                         # fetch document information
                         # scopus search,         20000
                         doc_info = search_document(
-                            make_query_author_id(author_id) + make_query_affiliation_id(affiliation_id),
+                            query_seq,
                             start, 200, api_keys[api_key_i]
                         )
                         quota_while = False

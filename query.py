@@ -193,6 +193,12 @@ def make_query_affiliation_id(affiliation_id):
 def make_query_author_id(author_id):
     return 'au-id(' + str(author_id) + ')'
 
+# ------------------
+def make_query_pubyear(pubyear, yeardirection):
+    if yeardirection not in ['>', '=', '<']:
+        raise ValueError('yeardirection should be in >, =, <')
+    return ' '.join(['pubyear', yeardirection, str(pubyear)])
+
 
 # ------------------
 def search_author(query, start, count, api_key):
