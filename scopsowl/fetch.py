@@ -1,27 +1,28 @@
 # ------------------
 # Import Libraries
 # ------------------
-import pandas as pd
+import os
 import time
+import logging
+import pandas as pd
 # ------------------
 
 # ------------------
 # Import Functions
 # ------------------
-from query import get_affiliation_info
-from query import get_document
-from query import search_document
-from query import make_query_affiliation_id
-from query import make_query_author_id
+from scopsowl.query import get_affiliation_info, get_document
+from scopsowl.query import search_document
+from scopsowl.query import make_query_affiliation_id, make_query_author_id, make_query_pubyear
 # ------------------
 
 # ------------------
-# Errors
+# Errors and logs
 # ------------------
-from query import QuotaExceeded
+from scopsowl.query import QuotaExceeded
 from requests.exceptions import ConnectionError
-from urllib3.exceptions import MaxRetryError
-from urllib3.exceptions import NewConnectionError
+from urllib3.exceptions import MaxRetryError, NewConnectionError
+
+logger = logging.getLogger(os.path.basename(__file__).replace('.py', ''))
 
 
 class UnmatchedLengthError(ValueError):
@@ -274,18 +275,18 @@ def fetch_doc(affiliation_ids, author_ids, pubyear, yeardirection, api_keys):
                     while_loop = False
     except (ConnectionError, NewConnectionError, MaxRetryError):
         # if the network has problem, record the id of author and affiliation
+        errormessage = ' '.join(
+             [
+                  time.strftime("%Y-%m-%d %H:%M"),
+                  'Affiliation {0} Author {1} stopped.\n'.format(affiliation_id, author_id)
+             ]
+        )
         with open('fetch_doc_broken.txt', 'a') as f:
-            f.write(
-                ' '.join(
-                    [
-                        time.strftime("%Y-%m-%d %H:%M"),
-                        'Affiliation {0} Author {1} stopped.\n'.format(affiliation_id, author_id)
-                     ]
-                )
-            )
+            f.write(errormessage)
     finally:
         # change list to DataFrame
         df_author_doc = pd.DataFrame(author_doc)
+        #print(df_author_doc)
         df_author_doc.columns = ['author_id', 'scopus_id']
         df_document = pd.DataFrame(document)
         df_document.columns = [

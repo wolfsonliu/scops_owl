@@ -2,12 +2,17 @@
 # Import Libraries
 # ------------------
 import requests
+import logging
+
 # ------------------
 
 
 # ------------------
-# Errors
+# Errors and logs
 # ------------------
+logger = logging.getLogger(__name__)
+
+
 class InvalidInput(ValueError):
     pass
 
@@ -192,6 +197,7 @@ def make_query_affiliation_id(affiliation_id):
 # ------------------
 def make_query_author_id(author_id):
     return 'au-id(' + str(author_id) + ')'
+
 
 # ------------------
 def make_query_pubyear(pubyear, yeardirection):

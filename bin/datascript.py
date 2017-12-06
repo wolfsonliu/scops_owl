@@ -1,6 +1,7 @@
 # ------------------
 # Import Libraries
 # ------------------
+import os
 import pandas as pd
 # ------------------
 
@@ -8,12 +9,13 @@ import pandas as pd
 # ------------------
 # Import Functions
 # ------------------
-from query import get_affiliation_info
-from fetch import fetch_doc
+from scopsowl.query import get_affiliation_info
+from scopsowl.fetch import fetch_doc
 # ------------------
 
+datadir = 'D:\\analysis\\scops_owl\\scopsowl'
 the_affiliation_id = '60014966'  # "Jilin University" ID 60007711
-the_api_keys = pd.read_csv('scopuskeys.txt', header=0)['apikey']
+the_api_keys = pd.read_csv(os.path.join(datadir, 'scopus_api_keys.txt'), header=0)['apikey']
 
 university_info = get_affiliation_info(the_affiliation_id, the_api_keys[0])
 
@@ -36,17 +38,17 @@ university = pd.DataFrame(
     }
 )
 
-university.to_csv('university.csv', index=False)
+university.to_csv(os.path.join(datadir, 'university.csv'), index=False)
 
-author = pd.read_csv('author.csv', header=0)
+author = pd.read_csv(os.path.join(datadir, 'author.csv'), header=0)
 
 the_author_ids = author['Auth-ID']
 the_affiliation_ids = [the_affiliation_id] * author.shape[0]
 # fetch data
-fetched = fetch_doc(the_affiliation_ids[26547:], the_author_ids[26547:], the_api_keys)
-fetched['author_doc'].to_csv('author_doc.csv', index=False)
-fetched['document'].to_csv('document.csv', index=False)
-fetched['doc_affiliation'].to_csv('doc_affiliation.csv', index=False)
+fetched = fetch_doc(the_affiliation_ids[47777:], the_author_ids[47777:], 1949, ">", the_api_keys)
+fetched['author_doc'].to_csv(os.path.join(datadir, 'author_doc.csv'), index=False)
+fetched['document'].to_csv(os.path.join(datadir, 'document.csv'), index=False)
+fetched['doc_affiliation'].to_csv(os.path.join(datadir, 'doc_affiliation.csv'), index=False)
 
 # ------------------
 # EOF
