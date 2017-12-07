@@ -13,7 +13,7 @@ import tkinter as tk
 # ------------------
 # Class
 # ------------------
-from scopsowl.scopsowlgui import AppFetchDoc
+from scopsowl.scopsowlgui import AppFetchAffilAuthorDoc
 
 
 class ScopsOwl(tk.Frame):
@@ -25,9 +25,13 @@ class ScopsOwl(tk.Frame):
         self.create_functions()
     
     def create_functions(self):
-        def appfetchdoc():
-            self.Apps['FetchDoc'] = AppFetchDoc(self)
-        self.buttons['FetchDoc'] = tk.Button(self, text='获取文献信息(作者和单位)', command=appfetchdoc)
+        def appfetchaffilauthordoc():
+            self.Apps['FetchAffilAuthorDoc'] = AppFetchAffilAuthorDoc(self)
+        self.buttons['FetchDoc'] = tk.Button(
+            self,
+            text='获取文献信息(作者和单位)',
+            command=appfetchaffilauthordoc
+        )
         self.buttons['FetchDoc'].pack(expand=True)
 
 

@@ -103,44 +103,7 @@ def get_document(scopus_id, api_key):
             )
     else:
         doc_json = doc_url.json()['abstracts-retrieval-response']
-        parsed_dict = dict()
-        parsed_dict['document'] = dict()
-        parsed_dict['document']['scopus_id'] = doc_json[
-            'coredata'
-        ][
-            'dc:identifier'
-        ] if 'dc:identifier' in doc_json['coredata'] else ''
-        parsed_dict['document']['eid'] = doc_json['coredata']['eid'] if 'eid' in doc_json['coredata'] else ''
-        parsed_dict['document']['pubmed_id'] = doc_json['coredata']['pubmed-id']
-        parsed_dict['document']['pii'] = doc_json['coredata']['pii']
-        parsed_dict['document']['doi'] = doc_json['coredata']['prism:doi']
-        parsed_dict['document']['title'] = doc_json['coredata']['dc:title']
-        parsed_dict['document']['aggregation_type'] = doc_json['coredata']['prism:aggregationType']
-        parsed_dict['document']['srctype'] = doc_json['coredata']['srctype']
-        parsed_dict['document']['citedby_count'] = doc_json['coredata']['citedby-count']
-        parsed_dict['document']['publication_name'] = doc_json['coredata']['prism:publicationName']
-        parsed_dict['document']['source_id'] = doc_json['coredata']['source-id']
-        parsed_dict['document']['issn'] = doc_json['coredata']['prism:issn']
-        parsed_dict['document']['volumn'] = doc_json['coredata']['prism:volume']
-        parsed_dict['document']['issue_identifier'] = doc_json['coredata']['prism:issureIdentifier']
-        parsed_dict['document']['start_page'] = doc_json['coredata']['prism:startingPage']
-        parsed_dict['document']['end_page'] = doc_json['coredata']['prism:endingPage']
-        parsed_dict['document']['page_range'] = doc_json['coredata']['prism:pageRange']
-        parsed_dict['document']['cover_date'] = doc_json['coredata']['prism:coverDate']
-        parsed_dict['document']['affiliation_id'] = doc_json['affiliation']['@id']
-        parsed_dict['document']['affiliation_name'] = doc_json['affiliation']['affilname']
-        parsed_dict['document']['affiliation_city'] = doc_json['affiliation']['affiliation-city']
-        parsed_dict['document']['affiliation_country'] = doc_json['affiliation']['affiliation-country']
-        parsed_dict['subject_area'] = doc_json['subject-areas']['subject-area']
-        parsed_dict['author'] = [
-            {
-                'author_id': x['@auid'], 'idxname': x['ce:indexed-name'], 'initialname': x['ce:initials'],
-                'surname': x['ce:surname'], 'givenname': x['ce:given-name'], 'rank': x['@seq'],
-                'affiliaion_id': x['affiliation']['@id']
-            }
-            for x in doc_json['authors']['author']
-        ]
-        return parsed_dict
+        return doc_json
 
 
 # ------------------

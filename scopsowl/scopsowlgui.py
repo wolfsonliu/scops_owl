@@ -16,6 +16,7 @@ import tkinter as tk
 # Function
 # ------------------
 from scopsowl.fetch import fetch_doc
+from scopsowl.fetch import fetch_document_info
 
 logger = logging.getLogger(os.path.basename(__file__).replace('.py', '')).addHandler(logging.StreamHandler())
 
@@ -24,7 +25,7 @@ logger = logging.getLogger(os.path.basename(__file__).replace('.py', '')).addHan
 # ------------------
 
 
-class AppFetchDoc(tk.Toplevel):
+class AppFetchAffilAuthorDoc(tk.Toplevel):
     def __init__(self, master=None):
         super().__init__(master)
         self.inputinfo = dict()
@@ -155,44 +156,33 @@ class AppFetchDoc(tk.Toplevel):
         self.inputinfo['filepath_doc_affiliation'] = self.fileentry['doc_affiliation'].get()
         self.inputinfo['filepath_doc'] = self.fileentry['doc'].get()
         
-        from time import sleep
-        message = tk.StringVar()
-        
-        one = tk.Toplevel()
-        tmp = tk.Message(one, textvariable=message)
-        tmp.pack()
-        samplefunc()
-        message.set(sys.stdout.readlines())
-        tmp.update()
-        
         # 下载文献信息
-#        fetched = fetch_doc(
-#            self.inputinfo['affiliation_id'],
-#            self.inputinfo['author_id'],
-#            self.inputinfo['year'],
-#            self.inputinfo['yeardirection'],
-#            self.inputinfo['api_key']
-#        )
-#        fetched['author_doc'].to_csv(
-#            os.path.join(self.inputinfo['filepath_wkdir'], self.inputinfo['filepath_author_doc']),
-#            index=False
-#        )
-#        fetched['document'].to_csv(
-#            os.path.join(self.inputinfo['filepath_wkdir'], self.inputinfo['filepath_doc']),
-#            index=False
-#        )
-#        fetched['doc_affiliation'].to_csv(
-#            os.path.join(self.inputinfo['filepath_wkdir'], self.inputinfo['filepath_doc_affiliation']),
-#            index=False
-#        )
+        fetched = fetch_doc(
+            self.inputinfo['affiliation_id'],
+            self.inputinfo['author_id'],
+            self.inputinfo['year'],
+            self.inputinfo['yeardirection'],
+            self.inputinfo['api_key']
+        )
+        fetched['author_doc'].to_csv(
+            os.path.join(self.inputinfo['filepath_wkdir'], self.inputinfo['filepath_author_doc']),
+            index=False
+        )
+        fetched['document'].to_csv(
+            os.path.join(self.inputinfo['filepath_wkdir'], self.inputinfo['filepath_doc']),
+            index=False
+        )
+        fetched['doc_affiliation'].to_csv(
+            os.path.join(self.inputinfo['filepath_wkdir'], self.inputinfo['filepath_doc_affiliation']),
+            index=False
+        )
 
+# ------------------
+        
+class AppFetchDocInfo(tk.Toplevel):
+    def __init__(self, master=None):
+        super().__init__(master)
 
-logger = logging.getLogger('one')
-logger.addHandler(logging.StreamHandler())
-def samplefunc():
-    for x in range(10):
-        sleep(1)
-        logger.info('Hi, there! ' + '{0}'.format(x))
 
 # ------------------
 # EOF

@@ -10,4 +10,5 @@ The python scripts in [scops_owl] are used to fetch data for analysis from the S
 ## Information ##
 
 * Author: Wolfson Liu
-* Time: 20171201
+* Time: 20171207
+* Version: 0.1.20171207

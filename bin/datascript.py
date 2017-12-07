@@ -3,6 +3,7 @@
 # ------------------
 import os
 import pandas as pd
+import numpy as np
 # ------------------
 
 
@@ -11,6 +12,7 @@ import pandas as pd
 # ------------------
 from scopsowl.query import get_affiliation_info
 from scopsowl.fetch import fetch_doc
+from scopsowl.fetch import fetch_document_info
 # ------------------
 
 datadir = 'D:\\analysis\\scops_owl\\scopsowl'
@@ -50,6 +52,13 @@ fetched['author_doc'].to_csv(os.path.join(datadir, 'author_doc.csv'), index=Fals
 fetched['document'].to_csv(os.path.join(datadir, 'document.csv'), index=False)
 fetched['doc_affiliation'].to_csv(os.path.join(datadir, 'doc_affiliation.csv'), index=False)
 
+doc = pd.read_csv('D:/analysis/document.csv', header=0)
+
+doc = doc.loc[np.logical_not(doc['scopus_id'].duplicated(keep='first'))]
+
+doc.to_csv('D:/analysis/document.csv', index=False)
+
+tmp = fetch_document_info(doc['scopus_id'].head().str.replace('SCOPUS_ID:', ''), the_api_keys)
 # ------------------
 # EOF
 # ------------------
