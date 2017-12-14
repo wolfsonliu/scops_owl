@@ -5,15 +5,35 @@ Created on Thu Nov 30 09:01:44 2017
 @author: lib
 """
 # ------------------
-# Library
+# Import Library
 # ------------------
 import tkinter as tk
+import logging
+import io
+
+
+# ------------------
+# Import Functions and Classes
+# ------------------
+from scopsowl.scopsowlgui import AppFetchAffilAuthorDoc
+
+
+# ------------------
+# Errors and logs
+# ------------------
+logger = logging.getLogger('scops_owl')
+log_string = io.StringIO()
+logger.addHandler(log_string)
+
+
+# ------------------
+# Function
+# ------------------
 
 
 # ------------------
 # Class
 # ------------------
-from scopsowl.scopsowlgui import AppFetchAffilAuthorDoc
 
 
 class ScopsOwl(tk.Frame):
@@ -38,8 +58,6 @@ class ScopsOwl(tk.Frame):
 # ------------------
 # Main
 # ------------------
-
-
 if __name__ == '__main__':
     root = tk.Tk()
     root.title('Scops Owl')

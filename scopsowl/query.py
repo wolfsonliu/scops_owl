@@ -10,7 +10,7 @@ import logging
 # ------------------
 # Errors and logs
 # ------------------
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('scops_owl.query')
 
 
 class InvalidInput(ValueError):
@@ -19,7 +19,6 @@ class InvalidInput(ValueError):
 
 class QuotaExceeded(ValueError):
     pass
-# ------------------
 
 
 # ------------------
@@ -28,6 +27,8 @@ class QuotaExceeded(ValueError):
 def get_affiliation_info(affiliation_id, api_key):
     # get affiliation request
     # affiliation retrieval quota per week 5000
+    affiliation_id = str(affiliation_id)
+    api_key = str(api_key)
     affiliation_url = requests.get(
         ''.join(
             [
@@ -39,6 +40,7 @@ def get_affiliation_info(affiliation_id, api_key):
             ]
         )
     )
+    logger.debug('get_affiliation_info(): request url: {0}'.format(affiliation_url.url))
     if 'service-error' in affiliation_url.json():
         if affiliation_url.json()['service-error']['status']['statusCode'] == 'INVALID_INPUT':
             raise InvalidInput(
@@ -56,27 +58,23 @@ def get_affiliation_info(affiliation_id, api_key):
         # parse xml file to dict
         affiliation_json = affiliation_url.json()['affiliation-retrieval-response']
         parsed_dict = dict()
-        parsed_dict['affiliation_name'] = affiliation_json['affiliation-name']
-        parsed_dict['eid'] = affiliation_json['coredata']['eid']
-        parsed_dict['author_count'] = affiliation_json['coredata']['author-count']
-        parsed_dict['document_count'] = affiliation_json['coredata']['document-count']
-        parsed_dict['affiliation_id'] = affiliation_json['coredata']['dc:identifier'].replace('AFFILIATION_ID:', '')
-        parsed_dict['address_countryshort'] = affiliation_json['institution-profile']['address']['@country']
-        parsed_dict['address_part'] = affiliation_json['institution-profile']['address']['address-part']
-        parsed_dict['address_city'] = affiliation_json['institution-profile']['address']['city']
-        parsed_dict['address_country'] = affiliation_json['institution-profile']['address']['country']
-        parsed_dict['address_postalcode'] = affiliation_json['institution-profile']['address']['postal-code']
-        parsed_dict['address_state'] = affiliation_json['institution-profile']['address']['state']
-        parsed_dict['org_type'] = affiliation_json['institution-profile']['org-type']
-        parsed_dict['org_domain'] = affiliation_json['institution-profile']['org-domain']
-        parsed_dict['org_url'] = affiliation_json['institution-profile']['org-URL']
+        parsed_dict['coredata'] = affiliation_json['coredata']
+        parsed_dict['affiliation-name'] = affiliation_json[
+            'affiliation-name'
+        ] if 'affiliation-name' in affiliation_json else ''
+        parsed_dict['address'] = affiliation_json['address'] if 'address' in affiliation_json else ''
+        parsed_dict['city'] = affiliation_json['city'] if 'city' in affiliation_json else ''
+        parsed_dict['country'] = affiliation_json['country'] if 'country' in affiliation_json else ''
+        parsed_dict['profile'] = affiliation_json['institution-profile']
         return parsed_dict
 
 
 # ------------------
-def get_document(scopus_id, api_key):
+def get_document_info(scopus_id, api_key):
     # get document request
     # abstract retrieval quota per week 10000
+    scopus_id = str(scopus_id)
+    api_key = str(api_key)
     doc_url = requests.get(
         ''.join(
             [
@@ -88,6 +86,7 @@ def get_document(scopus_id, api_key):
             ]
         )
     )
+    logger.debug('get_document_info: request url: {0}'.format(doc_url.url))
     if 'service-error' in doc_url.json():
         if doc_url.json()['service-error']['status']['statusCode'] == 'INVALID_INPUT':
             raise InvalidInput(
@@ -107,8 +106,10 @@ def get_document(scopus_id, api_key):
 
 
 # ------------------
-def get_author(author_id, api_key):
+def get_author_info(author_id, api_key):
     # author retrieval quota per week 5000
+    author_id = str(author_id)
+    api_key = str(api_key)
     au_url = requests.get(
         ''.join(
             [
@@ -120,6 +121,7 @@ def get_author(author_id, api_key):
             ]
         )
     )
+    logger.debug('get_author_info: request url: {0}'.format(au_url.url))
     if 'service-error' in au_url.json():
         if au_url.json()['service-error']['status']['statusCode'] == 'INVALID_INPUT':
             raise InvalidInput(
