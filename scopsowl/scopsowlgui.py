@@ -8,7 +8,7 @@ Created on Tue Dec  5 10:08:34 2017
 # Import Library
 # ------------------
 import os
-# import sys
+import io
 import logging
 import tkinter as tk
 
@@ -17,14 +17,15 @@ import tkinter as tk
 # Import Functions and Classes
 # ------------------
 from scopsowl.fetch import fetch_doc
-# from scopsowl.fetch import fetch_document_info
+from scopsowl.fetch import fetch_document_info
+from scopsowl.guitool import TextBox
 
 
 # ------------------
 # Errors and logs
 # ------------------
-
 logger = logging.getLogger('scops_owl.scopsowlgui')
+
 
 # ------------------
 # Function
@@ -34,50 +35,10 @@ logger = logging.getLogger('scops_owl.scopsowlgui')
 # ------------------
 # Class
 # ------------------
-class TextBox(tk.Frame):
-    def __init__(self, master, label, width, textwrap, row, column):
-        super().__init__(master)
-        # make the text box with x and y scrollbar
-        self.grid(row=row, column=column)
-        self.label = tk.Label(self, text=label)
-        self.label.grid(row=0, column=0)
-        self.text = tk.Text(
-            self,
-            borderwidth=3,
-            width=width,
-            relief=tk.SUNKEN,
-            wrap=textwrap
-        )
-        self.text.grid(row=1, column=0)
-        self.scroll_x = tk.Scrollbar(
-            self,
-            command=self.text.xview,
-            orient=tk.HORIZONTAL
-        )
-        self.scroll_x.grid(
-            row=2, column=0, sticky=tk.W + tk.E + tk.N + tk.S
-        )
-        self.text.configure(xscrollcommand=self.scroll_x.set)
-        self.scroll_y = tk.Scrollbar(
-            self,
-            command=self.text.yview,
-            orient=tk.VERTICAL
-        )
-        self.scroll_y.grid(
-            row=1, column=1, sticky=tk.W + tk.E + tk.N + tk.S
-        )
-        self.text.configure(yscrollcommand=self.scroll_y.set)
-
-    def get(self, index1, index2):
-        return self.text.get(index1, index2)
-
-# ------------------
-
-
 class AppFetchAffilAuthorDoc(tk.Toplevel):
     def __init__(self, master=None):
         super().__init__(master)
-        self.input_info = dict()
+        self.input_info = dict()  # store input data
         self._create_text_boxs()
         self._create_year_input()
         self._create_output_file_entry()
@@ -87,24 +48,14 @@ class AppFetchAffilAuthorDoc(tk.Toplevel):
         # 建立所有的文本输入框
         # affiliation id text
         # label
-        self.affiliation_id_textbox = TextBox(
-            self,
-            '单位ID（Affiliation ID）输入框',
-            width=40, textwrap=tk.NONE,
-            row=0, column=0
-        )
-        self.author_id_textbox = TextBox(
-            self,
-            '作者ID（Author ID）输入框',
-            width=40, textwrap=tk.NONE,
-            row=0, column=1
-        )
-        self.api_key_textbox = TextBox(
-            self,
-            'API KEY 输入框',
-            width=40, textwrap=tk.NONE,
-            row=0, column=2
-        )
+        text_frame = tk.Frame(self)
+        text_frame.grid(row=0, column=0, columnspan=3)
+        self.affiliation_id_textbox = TextBox(text_frame, '单位ID（Affiliation ID）输入框', width=40, textwrap=tk.NONE)
+        self.affiliation_id_textbox.grid(row=0, column=0)
+        self.author_id_textbox = TextBox(text_frame, '作者ID（Author ID）输入框', width=40, textwrap=tk.NONE)
+        self.author_id_textbox.grid(row=0, column=1)
+        self.api_key_textbox = TextBox(text_frame, 'API KEY 输入框', width=40, textwrap=tk.NONE)
+        self.api_key_textbox.grid(row=0, column=2)
         
     def _create_year_input(self):
         # 建立年份筛选输入框
@@ -197,7 +148,127 @@ class AppFetchAffilAuthorDoc(tk.Toplevel):
 class AppFetchDocInfo(tk.Toplevel):
     def __init__(self, master=None):
         super().__init__(master)
+        self.input_info = dict()  # store input data
+        self._create_text_boxs()
+        self._create_output_file_entry()
+        self._create_run_button()
 
+    def _create_text_boxs(self):
+        # 建立所有的文本输入框
+        # affiliation id text
+        # label
+        text_frame = tk.Frame(self)
+        text_frame.pack(padx=2, pady=2)
+        self.scopus_id_textbox = TextBox(text_frame, '文章 ID（SCOPUS ID）输入框', width=40, textwrap=tk.NONE)
+        self.scopus_id_textbox.grid(row=0, column=0)
+        self.api_key_textbox = TextBox(text_frame, 'API KEY 输入框', width=40, textwrap=tk.NONE )
+        self.api_key_textbox.grid(row=0, column=1)
+
+    def _create_output_file_entry(self):
+        # 建立输出文件名输入框
+        self.file_entry = dict()
+        self.output_file_frame = tk.Frame(self)
+        self.output_file_frame.pack(padx=2, pady=2)
+        title = tk.Label(self.output_file_frame, text='输出文件信息')
+        title.grid(row=0, column=0, columnspan=2)
+        lab = tk.Label(self.output_file_frame, text='工作目录')
+        lab.grid(row=1, column=0)
+        wk_entry = tk.StringVar()
+        wk_entry.set('')
+        self.file_entry['wkdir'] = tk.Entry(self.output_file_frame, textvariable=wk_entry)
+        self.file_entry['wkdir'].grid(row=1, column=1)
+        lab1 = tk.Label(self.output_file_frame, text='文献基本信息')
+        lab1.grid(row=2, column=0)
+        entry1 = tk.StringVar()
+        entry1.set('document_coredata.csv')
+        self.file_entry['document_coredata'] = tk.Entry(self.output_file_frame, textvariable=entry1)
+        self.file_entry['document_coredata'].grid(row=2, column=1)
+        lab2 = tk.Label(self.output_file_frame, text='文献作者信息')
+        lab2.grid(row=3, column=0)
+        entry2 = tk.StringVar()
+        entry2.set('document_author.csv')
+        self.file_entry['document_author'] = tk.Entry(self.output_file_frame, textvariable=entry2)
+        self.file_entry['document_author'].grid(row=3, column=1)
+        lab3 = tk.Label(self.output_file_frame, text='文献单位信息')
+        lab3.grid(row=4, column=0)
+        entry3 = tk.StringVar()
+        entry3.set('document_affiliation.csv')
+        self.file_entry['document_affiliation'] = tk.Entry(self.output_file_frame, textvariable=entry3)
+        self.file_entry['document_affiliation'].grid(row=4, column=1)
+        lab4 = tk.Label(self.output_file_frame, text='文献ID-作者ID-单位ID')
+        lab4.grid(row=5, column=0)
+        entry4 = tk.StringVar()
+        entry4.set('document_authorid_affiliationid.csv')
+        self.file_entry['document_authorid_affiliationid'] = tk.Entry(self.output_file_frame, textvariable=entry4)
+        self.file_entry['document_authorid_affiliationid'].grid(row=5, column=1)
+        lab5 = tk.Label(self.output_file_frame, text='文献领域信息')
+        lab5.grid(row=6, column=0)
+        entry5 = tk.StringVar()
+        entry5.set('document_subject_area.csv')
+        self.file_entry['document_subject_area'] = tk.Entry(self.output_file_frame, textvariable=entry5)
+        self.file_entry['document_subject_area'].grid(row=6, column=1)
+        lab6 = tk.Label(self.output_file_frame, text='文献关键词信息')
+        lab6.grid(row=7, column=0)
+        entry6 = tk.StringVar()
+        entry6.set('document_keyword.csv')
+        self.file_entry['document_keyword'] = tk.Entry(self.output_file_frame, textvariable=entry6)
+        self.file_entry['document_keyword'].grid(row=7, column=1)
+
+    def _create_run_button(self):
+        # 建立运行按钮
+        self.run_button_frame = tk.Frame(self)
+        self.run_button_frame.pack(padx=2, pady=2)
+        self.run_button = tk.Button(self.run_button_frame, text='运行', command=self._run)
+        self.run_button.pack(side=tk.RIGHT, expand=True, anchor=tk.CENTER)
+
+    def _run(self):
+        self.input_info['api_key'] = self.api_key_textbox.get(1.0, tk.END).rstrip().split('\n')  # get api keys
+        self.input_info['scopus_id'] = self.scopus_id_textbox.get(1.0, tk.END).rstrip().split('\n')  # get scopus id
+        # dirs and file names
+        self.input_info['filepath_wkdir'] = self.file_entry['wkdir'].get()
+        self.input_info['filepath_document_coredata'] = self.file_entry['document_coredata'].get()
+        self.input_info['filepath_document_author'] = self.file_entry['document_author'].get()
+        self.input_info['filepath_document_affiliation'] = self.file_entry['document_affiliation'].get()
+        self.input_info['filepath_document_authorid_affiliationid'] = self.file_entry[
+            'document_authorid_affiliationid'
+        ].get()
+        self.input_info['filepath_document_subject_area'] = self.file_entry['document_subject_area'].get()
+        self.input_info['filepath_document_keyword'] = self.file_entry['document_keyword'].get()
+        for i in range(10):
+            logger.debug(str(i))
+        # # fetch data
+        # fetched = fetch_document_info(
+        #     self.input_info['scopus_id'],
+        #     self.input_info['api_key']
+        # )
+        # # store data
+        # fetched['document'].to_csv(
+        #     os.path.join(self.input_info['filepath_wkdir'], self.input_info['filepath_document_coredata']),
+        #     index=False
+        # )
+        # fetched['author'].to_csv(
+        #     os.path.join(self.input_info['filepath_wkdir'], self.input_info['filepath_document_author']),
+        #     index=False
+        # )
+        # fetched['affiliation'].to_csv(
+        #     os.path.join(self.input_info['filepath_wkdir'], self.input_info['filepath_document_affiliation']),
+        #     index=False
+        # )
+        # fetched['author_affiliation'].to_csv(
+        #     os.path.join(
+        #         self.input_info['filepath_wkdir'],
+        #         self.input_info['filepath_document_authorid_affiliationid']
+        #     ),
+        #     index=False
+        # )
+        # fetched['subject_area'].to_csv(
+        #     os.path.join(self.input_info['filepath_wkdir'], self.input_info['document_subject_area']),
+        #     index=False
+        # )
+        # fetched['keyword'].to_csv(
+        #     os.path.join(self.input_info['filepath_wkdir'], self.input_info['filepath_document_keyword']),
+        #     index=False
+        # )
 
 # ------------------
 # EOF

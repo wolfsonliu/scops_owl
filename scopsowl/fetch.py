@@ -93,6 +93,18 @@ def fetch_affiliation_info(affiliation_ids, api_keys):
 # ------------------
 
 
+def fetch_author_info(author_ids, api_keys):
+    if not (hasattr(author_ids, '__getitem__') and hasattr(affiliation_ids, '__iter__')):
+        raise ValueError('author_ids should be list-like object.')
+    if not (hasattr(api_keys, '__getitem__') and hasattr(api_keys, '__iter__')):
+        raise ValueError('api_keys should be list-like object.')
+    au_info = list()
+    pass
+
+
+# ------------------
+
+
 def fetch_document_info(scopus_ids, api_keys):
     if not (hasattr(scopus_ids, '__getitem__') and hasattr(scopus_ids, '__iter__')):
         raise ValueError('affiliation_ids should be list-like object.')
@@ -106,10 +118,10 @@ def fetch_document_info(scopus_ids, api_keys):
     doc_info['author_affiliation'] = list()
     doc_info['keyword'] = list()
     scopus_id = 'none'
+    i = 1
     try:
         api_key_i = 0
         for scopus_id in scopus_ids:
-            logger.debug('fetch_document_info: loop scopus_id: {0}'.format(scopus_id))
             quota_while = True
             while quota_while:
                 try:
@@ -321,6 +333,8 @@ def fetch_document_info(scopus_ids, api_keys):
                     doc_info['author_affiliation'].extend(doc_author_affiliation)
                     doc_info['subject_area'].extend(doc_subject_area)
                     doc_info['keyword'].extend(doc_keyword)
+                    logger.info('{0} / {1}: [scopus_id: {2}] '.format(i, len(scopus_ids), scopus_id))
+                    i += 1
                 except QuotaExceeded as e:
                     api_key_i += 1
                     if api_key_i == len(api_keys):
@@ -330,11 +344,14 @@ def fetch_document_info(scopus_ids, api_keys):
 
     except (ConnectionError, NewConnectionError, MaxRetryError) as e:
         # if the network has problem, record the id of author and affiliation
-        error = ' '.join(['fetch_document_info:', time.strftime('%Y-%m-%d %H:%M'), e])
+        error = ' '.join(
+            [
+                'fetch_document_info:',
+                time.strftime('%Y-%m-%d %H:%M'), e,
+                '{0} / {1}: [scopus_id: {2}] '.format(i, len(scopus_ids), scopus_id)
+            ]
+        )
         logger.error(error)
-        with open('fetch_document_info_broken.txt', 'a') as f:
-            f.write(error + ' ')
-            f.write('Document {0} stopped.\n'.format(scopus_id))
     finally:
         result = dict()
         result['document'] = pd.DataFrame(doc_info['document'])
