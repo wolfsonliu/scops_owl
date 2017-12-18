@@ -55,7 +55,7 @@ def fetch_affiliation_info(affiliation_ids, api_keys):
             while quota_while:
                 try:
                     aff = get_affiliation_info(affiliation_id, api_keys[api_key_i])
-                    print(aff['affiliation-name'])
+                    logger.info(' '.join(['单位名称：', aff['affiliation-name']]))
                     aff_basic = {
                         'affiliation_id': affiliation_id,
                         'affiliation_name': aff['affiliation-name'] if 'affiliation-name' in aff else '',
@@ -94,12 +94,269 @@ def fetch_affiliation_info(affiliation_ids, api_keys):
 
 
 def fetch_author_info(author_ids, api_keys):
-    if not (hasattr(author_ids, '__getitem__') and hasattr(affiliation_ids, '__iter__')):
+    if not (hasattr(author_ids, '__getitem__') and hasattr(author_ids, '__iter__')):
         raise ValueError('author_ids should be list-like object.')
     if not (hasattr(api_keys, '__getitem__') and hasattr(api_keys, '__iter__')):
         raise ValueError('api_keys should be list-like object.')
-    au_info = list()
-    pass
+    au_info = dict()
+    au_info['author'] = list()
+    au_info['affiliation'] = list()
+    au_info['subject_area'] = list()
+    author_id = 'none'
+    i = 1
+    try:
+        api_key_i = 0
+        for author_id in author_ids:
+            quota_while = True
+            while quota_while:
+                try:
+                    au = get_author_info(scopus_id, api_keys[api_key_i])
+                    quota_while = False
+                    au_core = dict()
+                    au_core['author_id'] = au['coredata']['dc:identifier']
+                    au_core['eid'] = au['coredata']['eid']
+                    au_core['document_count'] = au_json['coredata']['document-count']
+                    au_core['cited_by_couunt'] = au_json['coredata']['cited-by-count']
+                    au_core['citation_count'] = au_json['coredata']['citation-count']
+                    au_core['affiliation_id'] = au_json['affiliation-current']['@id']
+                    au_core['surname'] = au_json['author-profile']['preferred-name']['surname']
+                    au_core['idxname'] = au_json['author-profile']['preferred-name']['indexed-name']
+                    au_core['initialname'] = au_json['author-profile']['preferred-name']['initials']
+                    au_core['givenname'] = au_json['author-profile']['preferred-name']['given-name']
+                    doc_core['scopus_id'] = doc['coredata']['dc:identifier'] if 'dc:identifier' in doc[
+                        'coredata'
+                    ] else ''
+                    doc_core['eid'] = doc['coredata']['eid'] if 'eid' in doc['coredata'] else ''
+                    doc_core['pubmed_id'] = doc['coredata']['pubmed-id'] if 'pubmed-id' in doc['coredata'] else ''
+                    doc_core['pii'] = doc['coredata']['pii'] if 'pii' in doc['coredata'] else ''
+                    doc_core['doi'] = doc['coredata']['prism:doi'] if 'prism:doi' in doc['coredata'] else ''
+                    doc_core['title'] = doc['coredata']['dc:title'] if 'dc:title' in doc['coredata'] else ''
+                    logger.info(' '.join(['文献名称：', doc_core['title']]))
+                    doc_core['aggregation_type'] = doc['coredata'][
+                        'prism:aggregationType'
+                    ] if 'prism:aggregationType' in doc['coredata'] else ''
+                    doc_core['srctype'] = doc['coredata']['srctype'] if 'srctype' in doc['coredata'] else ''
+                    doc_core['citedby_count'] = doc['coredata']['citedby-count'] if 'citedby-count' in doc[
+                        'coredata'
+                    ] else ''
+                    doc_core['publication_name'] = doc['coredata'][
+                        'prism:publicationName'
+                    ] if 'prism:publicationName' in doc['coredata'] else ''
+                    doc_core['source_id'] = doc['coredata']['source-id'] if 'source-id' in doc['coredata'] else ''
+                    doc_core['issn'] = doc['coredata']['prism:issn'] if 'prism:issn' in doc['coredata'] else ''
+                    doc_core['volumn'] = doc['coredata']['prism:volume'] if 'prism:volume' in doc['coredata'] else ''
+                    doc_core['issue_identifier'] = doc['coredata'][
+                        'prism:issureIdentifier'
+                    ] if 'prism:issureIdentifier' in doc['coredata'] else ''
+                    doc_core['start_page'] = doc['coredata']['prism:startingPage'] if 'prism:startingPage' in doc[
+                        'coredata'
+                    ] else ''
+                    doc_core['end_page'] = doc['coredata']['prism:endingPage'] if 'prism:endingPage' in doc[
+                        'coredata'
+                    ] else ''
+                    doc_core['page_range'] = doc['coredata']['prism:pageRange'] if 'prism:pageRange' in doc[
+                        'coredata'
+                    ] else ''
+                    doc_core['cover_date'] = doc['coredata']['prism:coverDate'] if 'prism:coverDate' in doc[
+                        'coredata'
+                    ] else ''
+                    # affiliation information of document
+                    doc_affiliation = list()
+                    if 'affiliation' in doc:
+                        if isinstance(doc['affiliation'], dict):
+                            doc_affiliation.append(
+                                {
+                                    'scopus_id': str(scopus_id),
+                                    'affiliation_id': doc['affiliation']['@id'],
+                                    'affiliation_name': doc['affiliation']['affilname'],
+                                    'affiliation_city': doc['affiliation']['affiliation-city'],
+                                    'affiliation_country': doc['affiliation']['affiliation-country']
+                                }
+                            )
+                        elif isinstance(doc['affiliation'], list):
+                            doc_affiliation.extend(
+                                [
+                                    {
+                                        'scopus_id': str(scopus_id),
+                                        'affiliation_id': x['@id'],
+                                        'affiliation_name': x['affilname'],
+                                        'affiliation_city': x['affiliation-city'],
+                                        'affiliation_country': x['affiliation-country']
+                                    } for x in doc['affiliation']
+                                ]
+                            )
+                    else:
+                        doc_affiliation.append(
+                            {
+                                'scopus_id': '', 'affiliation_id': '', 'affiliation_name': '',
+                                'affiliation_city': '', 'affiliation_country': ''
+                            }
+                        )
+                    logger.debug(
+                        'fetch_document_info: loop doc_affiliation affiliation_id: {0}'.format(
+                            doc_affiliation[0]['affiliation_id']
+                        )
+                    )
+                    # author information of document
+                    doc_author = list()
+                    if 'authors' in doc:
+                        if isinstance(doc['authors']['author'], dict):
+                            doc_author.append(
+                                {
+                                    'scopus_id': str(scopus_id),
+                                    'author_id': doc['authors']['author']['@auid'],
+                                    'idxname': doc['authors']['author']['ce:indexed-name'],
+                                    'initialname': doc['authors']['author']['ce:initials'],
+                                    'surname': doc['authors']['author']['ce:surname'],
+                                    'rank': doc['authors']['author']['@seq']
+                                }
+                            )
+                        elif isinstance(doc['authors']['author'], list):
+                            doc_author.extend(
+                                [
+                                    {
+                                        'scopus_id': scopus_id,
+                                        'author_id': x['@auid'],
+                                        'idxname': x['ce:indexed-name'],
+                                        'initialname': x['ce:initials'],
+                                        'surname': x['ce:surname'],
+                                        'rank': x['@seq']
+                                    }
+                                    for x in doc['authors']['author']
+                                ]
+                            )
+                    else:
+                        doc_author.append(
+                            {
+                                'scopus_id': '', 'author_id': '', 'idxname': '',
+                                'initialname': '', 'surname': '', 'rank': ''
+                            }
+                        )
+                    logger.debug(
+                        'fetch_document_info: loop doc_affiliation author_id: {0}'.format(
+                            doc_author[0]['author_id']
+                        )
+                    )
+                    doc_author_affiliation = list()
+                    if 'authors' in doc:
+                        if not isinstance(doc['authors']['author'], list):
+                            doc['authors']['author'] = [doc['authors']['author']]
+                        for au in doc['authors']['author']:
+                            if isinstance(au['affiliation'], list):
+                                doc_author_affiliation.extend(
+                                    [
+                                        {
+                                            'scopus_id': str(scopus_id),
+                                            'author_id': au['@auid'],
+                                            'affiliation_id': x['@id']
+                                        } for x in au['affiliation']
+                                    ]
+                                )
+                            elif isinstance(au['affiliation'], dict):
+                                doc_author_affiliation.append(
+                                    {
+                                        'scopus_id': str(scopus_id),
+                                        'author_id': au['@auid'],
+                                        'affiliation_id': au['affiliation']['@id']
+                                    }
+                                )
+                    else:
+                        doc_author_affiliation.append({'scopus_id': '', 'affiliation_id': ''})
+                    logger.debug(
+                        'fetch_document_info: loop doc_author_affiliation author_id: {0}, affiliation_id: {1}'.format(
+                            doc_author_affiliation[0]['author_id'], doc_author_affiliation[0]['affiliation_id']
+                        )
+                    )
+                    # subject information of document
+                    doc_subject_area = list()
+                    if 'subject-areas' in doc:
+                        if isinstance(doc['subject-areas']['subject-area'], dict):
+                            doc_subject_area.append(
+                                {
+                                    'scopus_id': str(scopus_id),
+                                    'code': doc['subject-areas']['subject-area']['@code'],
+                                    'abbrev': doc['subject-areas']['subject-area']['@abbrev'],
+                                    'description': doc['subject-areas']['subject-area']['$']
+                                }
+                            )
+                        elif isinstance(doc['subject-areas']['subject-area'], list):
+                            doc_subject_area.extend(
+                                [
+                                    {
+                                        'scopus_id': str(scopus_id),
+                                        'code': x['@code'],
+                                        'abbrev': x['@abbrev'],
+                                        'description': x['$']
+                                    }
+                                    for x in doc['subject-areas']['subject-area']
+                                ]
+                            )
+                    else:
+                        doc_subject_area.append(
+                            {'scopus_id': '', 'code': '', 'abbrev': '', 'description': ''}
+                        )
+                    logger.debug(
+                        'fetch_document_info: loop subject_areas description: {0}'.format(
+                            doc_subject_area[0]['description']
+                        )
+                    )
+                    # keyword of document
+                    doc_keyword = list()
+                    if 'authkeywords' in doc:
+                        if isinstance(doc['authkeywords']['author-keyword'], dict):
+                            doc_keyword.append(
+                                {
+                                    'scopus_id': str(scopus_id),
+                                    'keyword': doc['authkeywords']['author-keyword']['$']
+                                }
+                            )
+                        elif isinstance(doc['authkeywords']['author-keyword'], list):
+                            doc_keyword.extend(
+                                [
+                                    {
+                                        'scopus_id': str(scopus_id),
+                                        'keyword': x['$']
+                                    }
+                                    for x in doc['authkeywords']['author-keyword']
+                                ]
+                            )
+                    else:
+                        doc_keyword.append({'scopus_id': '', 'keyword': ''})
+                    logger.debug('fetch_document_info: loop keyword: {0}'.format(doc_keyword[0]['keyword']))
+                    au_info['author'].append(doc_core)
+                    doc_info['affiliation'].extend(doc_affiliation)
+                    doc_info['author'].extend(doc_author)
+                    doc_info['author_affiliation'].extend(doc_author_affiliation)
+                    doc_info['subject_area'].extend(doc_subject_area)
+                    doc_info['keyword'].extend(doc_keyword)
+                    logger.info('{0} / {1}: [scopus_id: {2}] '.format(i, len(scopus_ids), scopus_id))
+                    i += 1
+                except QuotaExceeded as e:
+                    api_key_i += 1
+                    if api_key_i == len(api_keys):
+                        ex = ' '.join(['fetch_document_info:', e])
+                        logger.exception(ex)
+                        raise NoAvailableKeys('Usable key exhausted.')
+
+    except (ConnectionError, NewConnectionError, MaxRetryError) as e:
+        # if the network has problem, record the id of author and affiliation
+        error = ' '.join(
+            [
+                'fetch_document_info:',
+                time.strftime('%Y-%m-%d %H:%M'), e,
+                '{0} / {1}: [scopus_id: {2}] '.format(i, len(scopus_ids), scopus_id)
+            ]
+        )
+        logger.error(error)
+    finally:
+        result = dict()
+        result['document'] = pd.DataFrame(doc_info['document'])
+        result['author'] = pd.DataFrame(doc_info['author'])
+        result['affiliation'] = pd.DataFrame(doc_info['affiliation'])
+        result['author_affiliation'] = pd.DataFrame(doc_info['author_affiliation'])
+        result['subject_area'] = pd.DataFrame(doc_info['subject_area'])
+        result['keyword'] = pd.DataFrame(doc_info['keyword'])
+        return result
 
 
 # ------------------
@@ -136,6 +393,7 @@ def fetch_document_info(scopus_ids, api_keys):
                     doc_core['pii'] = doc['coredata']['pii'] if 'pii' in doc['coredata'] else ''
                     doc_core['doi'] = doc['coredata']['prism:doi'] if 'prism:doi' in doc['coredata'] else ''
                     doc_core['title'] = doc['coredata']['dc:title'] if 'dc:title' in doc['coredata'] else ''
+                    logger.info(' '.join(['文献名称：', doc_core['title']]))
                     doc_core['aggregation_type'] = doc['coredata'][
                         'prism:aggregationType'
                     ] if 'prism:aggregationType' in doc['coredata'] else ''

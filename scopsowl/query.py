@@ -138,17 +138,9 @@ def get_author_info(author_id, api_key):
     else:
         au_json = au_url.json()['author-retrieval-response'][0]
         parsed_dict = dict()
-        parsed_dict['author'] = dict()
-        parsed_dict['author']['author_id'] = au_json['coredata']['dc:identifier']
-        parsed_dict['author']['eid'] = au_json['coredata']['eid']
-        parsed_dict['author']['document_count'] = au_json['coredata']['document-count']
-        parsed_dict['author']['cited_by_couunt'] = au_json['coredata']['cited-by-count']
-        parsed_dict['author']['citation_count'] = au_json['coredata']['citation-count']
-        parsed_dict['author']['affiliation_id'] = au_json['affiliation-current']['@id']
-        parsed_dict['author']['surname'] = au_json['author-profile']['preferred-name']['surname']
-        parsed_dict['author']['idxname'] = au_json['author-profile']['preferred-name']['indexed-name']
-        parsed_dict['author']['initialname'] = au_json['author-profile']['preferred-name']['initials']
-        parsed_dict['author']['givenname'] = au_json['author-profile']['preferred-name']['given-name']
+        parsed_dict['coredata'] = au_json['coredata']
+        parsed_dict['affiliation_current'] = au_json['affiliation-current']
+        parsed_dict['author_profile'] = au_json['author-profile']
         parsed_dict['affiliation'] = au_json['author-profile']['affiliation-history']['affiliation']
         parsed_dict['subject_area'] = au_json['subject-areas']['subject-area']
         return parsed_dict

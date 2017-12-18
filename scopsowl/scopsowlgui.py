@@ -234,8 +234,9 @@ class AppFetchDocInfo(tk.Toplevel):
         ].get()
         self.input_info['filepath_document_subject_area'] = self.file_entry['document_subject_area'].get()
         self.input_info['filepath_document_keyword'] = self.file_entry['document_keyword'].get()
+        self.scopus_id_textbox.insert(tk.END, 'here')
         for i in range(10):
-            logger.debug(str(i))
+            logger.debug( str(i))
         # # fetch data
         # fetched = fetch_document_info(
         #     self.input_info['scopus_id'],

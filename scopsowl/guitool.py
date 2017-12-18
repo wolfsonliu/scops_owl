@@ -8,7 +8,7 @@ import logging
 # ------------------
 # Errors and logs
 # ------------------
-
+logger = logging.getLogger('scops_owl.guitool')
 
 # ------------------
 # Class
@@ -39,22 +39,21 @@ class TextBox(tk.Text):
         )
         self.configure(yscrollcommand=self.block['scroll_y'].set)
 
-    def grid(self, row, column, **vars):
+    def grid(self, row, column, ** vars):
         self.frame.grid(row=row, column=column, **vars)
         self.block['label'].grid(row=0, column=0)
         super().grid(row=1, column=0, sticky=tk.W + tk.E + tk.N + tk.S)
         self.block['scroll_x'].grid(row=2, column=0, sticky=tk.W + tk.E + tk.N + tk.S)
         self.block['scroll_y'].grid(row=1, column=1, sticky=tk.W + tk.E + tk.N + tk.S)
 
-
 # ------------------
 
 
 class WidgetLogger(logging.Handler):
     def __init__(self, widget):
-        logging.Handler.__init__(self)
+        super().__init__()
         self.widget = widget
-        # self.widget.configure(state='disabled')
+        self.widget.configure(state=tk.DISABLED)
         self.widget.tag_config("INFO", foreground="black")
         self.widget.tag_config("DEBUG", foreground="grey")
         self.widget.tag_config("WARNING", foreground="orange")
@@ -62,11 +61,11 @@ class WidgetLogger(logging.Handler):
         self.widget.tag_config("CRITICAL", foreground="red", underline=1)
 
     def emit(self, record):
-        # self.widget.configure(state=tk.NORMAL)
+        self.widget.configure(state=tk.NORMAL)
         # Append message (record) to the widget
-        self.widget.insert(tk.END)
+        self.widget.insert(tk.END, self.format(record) + '\n', record.levelname)
         self.widget.see(tk.END)  # Scroll to the bottom
-        # self.widget.configure(state=tk.DISABLED)
+        self.widget.configure(state=tk.DISABLED)
         self.widget.update()  # Refresh the widget
 
 # ------------------

@@ -25,6 +25,7 @@ from scopsowl.guitool import WidgetLogger
 logger = logging.getLogger('scops_owl')
 logger.setLevel(logging.DEBUG)
 
+
 # ------------------
 # Function
 # ------------------
@@ -72,6 +73,8 @@ class ScopsOwl(tk.Frame):
         self.log_text_box = TextBox(log_box, '运行记录', width=40, textwrap=tk.NONE)
         self.log_text_box.grid(row=0, column=0)
         widget_handler = WidgetLogger(self.log_text_box)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        widget_handler.setFormatter(formatter)
         logger.addHandler(widget_handler)
 
 
