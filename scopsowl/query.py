@@ -137,13 +137,7 @@ def get_author_info(author_id, api_key):
             )
     else:
         au_json = au_url.json()['author-retrieval-response'][0]
-        parsed_dict = dict()
-        parsed_dict['coredata'] = au_json['coredata']
-        parsed_dict['affiliation_current'] = au_json['affiliation-current']
-        parsed_dict['author_profile'] = au_json['author-profile']
-        parsed_dict['affiliation'] = au_json['author-profile']['affiliation-history']['affiliation']
-        parsed_dict['subject_area'] = au_json['subject-areas']['subject-area']
-        return parsed_dict
+        return au_json
 
 
 # ------------------

@@ -8,7 +8,6 @@ Created on Tue Dec  5 10:08:34 2017
 # Import Library
 # ------------------
 import os
-import io
 import logging
 import tkinter as tk
 
@@ -18,6 +17,8 @@ import tkinter as tk
 # ------------------
 from scopsowl.fetch import fetch_doc
 from scopsowl.fetch import fetch_document_info
+from scopsowl.fetch import fetch_author_info
+from scopsowl.fetch import fetch_affiliation_info
 from scopsowl.guitool import TextBox
 
 
@@ -161,7 +162,7 @@ class AppFetchDocInfo(tk.Toplevel):
         text_frame.pack(padx=2, pady=2)
         self.scopus_id_textbox = TextBox(text_frame, '文章 ID（SCOPUS ID）输入框', width=40, textwrap=tk.NONE)
         self.scopus_id_textbox.grid(row=0, column=0)
-        self.api_key_textbox = TextBox(text_frame, 'API KEY 输入框', width=40, textwrap=tk.NONE )
+        self.api_key_textbox = TextBox(text_frame, 'API KEY 输入框', width=40, textwrap=tk.NONE)
         self.api_key_textbox.grid(row=0, column=1)
 
     def _create_output_file_entry(self):
@@ -235,41 +236,196 @@ class AppFetchDocInfo(tk.Toplevel):
         self.input_info['filepath_document_subject_area'] = self.file_entry['document_subject_area'].get()
         self.input_info['filepath_document_keyword'] = self.file_entry['document_keyword'].get()
         self.scopus_id_textbox.insert(tk.END, 'here')
-        for i in range(10):
-            logger.debug( str(i))
-        # # fetch data
-        # fetched = fetch_document_info(
-        #     self.input_info['scopus_id'],
-        #     self.input_info['api_key']
-        # )
-        # # store data
-        # fetched['document'].to_csv(
-        #     os.path.join(self.input_info['filepath_wkdir'], self.input_info['filepath_document_coredata']),
-        #     index=False
-        # )
-        # fetched['author'].to_csv(
-        #     os.path.join(self.input_info['filepath_wkdir'], self.input_info['filepath_document_author']),
-        #     index=False
-        # )
-        # fetched['affiliation'].to_csv(
-        #     os.path.join(self.input_info['filepath_wkdir'], self.input_info['filepath_document_affiliation']),
-        #     index=False
-        # )
-        # fetched['author_affiliation'].to_csv(
-        #     os.path.join(
-        #         self.input_info['filepath_wkdir'],
-        #         self.input_info['filepath_document_authorid_affiliationid']
-        #     ),
-        #     index=False
-        # )
-        # fetched['subject_area'].to_csv(
-        #     os.path.join(self.input_info['filepath_wkdir'], self.input_info['document_subject_area']),
-        #     index=False
-        # )
-        # fetched['keyword'].to_csv(
-        #     os.path.join(self.input_info['filepath_wkdir'], self.input_info['filepath_document_keyword']),
-        #     index=False
-        # )
+        # fetch data
+        fetched = fetch_document_info(
+            self.input_info['scopus_id'],
+            self.input_info['api_key']
+        )
+        # store data
+        fetched['document'].to_csv(
+            os.path.join(self.input_info['filepath_wkdir'], self.input_info['filepath_document_coredata']),
+            index=False
+        )
+        fetched['author'].to_csv(
+            os.path.join(self.input_info['filepath_wkdir'], self.input_info['filepath_document_author']),
+            index=False
+        )
+        fetched['affiliation'].to_csv(
+            os.path.join(self.input_info['filepath_wkdir'], self.input_info['filepath_document_affiliation']),
+            index=False
+        )
+        fetched['author_affiliation'].to_csv(
+            os.path.join(
+                self.input_info['filepath_wkdir'],
+                self.input_info['filepath_document_authorid_affiliationid']
+            ),
+            index=False
+        )
+        fetched['subject_area'].to_csv(
+            os.path.join(self.input_info['filepath_wkdir'], self.input_info['document_subject_area']),
+            index=False
+        )
+        fetched['keyword'].to_csv(
+            os.path.join(self.input_info['filepath_wkdir'], self.input_info['filepath_document_keyword']),
+            index=False
+        )
+
+# ------------------
+
+
+class AppFetchAuthorInfo(tk.Toplevel):
+    def __init__(self, master=None):
+        super().__init__(master)
+        self.input_info = dict()  # store input data
+        self._create_text_boxs()
+        self._create_output_file_entry()
+        self._create_run_button()
+
+    def _create_text_boxs(self):
+        # 建立所有的文本输入框
+        # author id text
+        # label
+        text_frame = tk.Frame(self)
+        text_frame.pack(padx=2, pady=2)
+        self.author_id_textbox = TextBox(text_frame, '作者 ID（AUTHOR ID）输入框', width=40, textwrap=tk.NONE)
+        self.author_id_textbox.grid(row=0, column=0)
+        self.api_key_textbox = TextBox(text_frame, 'API KEY 输入框', width=40, textwrap=tk.NONE)
+        self.api_key_textbox.grid(row=0, column=1)
+
+    def _create_output_file_entry(self):
+        # 建立输出文件名输入框
+        self.file_entry = dict()
+        self.output_file_frame = tk.Frame(self)
+        self.output_file_frame.pack(padx=2, pady=2)
+        title = tk.Label(self.output_file_frame, text='输出文件信息')
+        title.grid(row=0, column=0, columnspan=2)
+        lab = tk.Label(self.output_file_frame, text='工作目录')
+        lab.grid(row=1, column=0)
+        wk_entry = tk.StringVar()
+        wk_entry.set('')
+        self.file_entry['wkdir'] = tk.Entry(self.output_file_frame, textvariable=wk_entry)
+        self.file_entry['wkdir'].grid(row=1, column=1)
+        lab1 = tk.Label(self.output_file_frame, text='作者基本信息')
+        lab1.grid(row=2, column=0)
+        entry1 = tk.StringVar()
+        entry1.set('author_coredata.csv')
+        self.file_entry['author_coredata'] = tk.Entry(self.output_file_frame, textvariable=entry1)
+        self.file_entry['author_coredata'].grid(row=2, column=1)
+        lab2 = tk.Label(self.output_file_frame, text='作者领域')
+        lab2.grid(row=3, column=0)
+        entry2 = tk.StringVar()
+        entry2.set('author_subject_area.csv')
+        self.file_entry['author_area'] = tk.Entry(self.output_file_frame, textvariable=entry2)
+        self.file_entry['author_area'].grid(row=3, column=1)
+        lab3 = tk.Label(self.output_file_frame, text='作者单位信息')
+        lab3.grid(row=4, column=0)
+        entry3 = tk.StringVar()
+        entry3.set('author_affiliation.csv')
+        self.file_entry['author_affiliation'] = tk.Entry(self.output_file_frame, textvariable=entry3)
+        self.file_entry['author_affiliation'].grid(row=4, column=1)
+
+    def _create_run_button(self):
+        # 建立运行按钮
+        self.run_button_frame = tk.Frame(self)
+        self.run_button_frame.pack(padx=2, pady=2)
+        self.run_button = tk.Button(self.run_button_frame, text='运行', command=self._run)
+        self.run_button.pack(side=tk.RIGHT, expand=True, anchor=tk.CENTER)
+
+    def _run(self):
+        self.input_info['api_key'] = self.api_key_textbox.get(1.0, tk.END).rstrip().split('\n')  # get api keys
+        self.input_info['author_id'] = self.author_id_textbox.get(1.0, tk.END).rstrip().split('\n')  # get scopus id
+        # dirs and file names
+        self.input_info['filepath_wkdir'] = self.file_entry['wkdir'].get()
+        self.input_info['filepath_author_coredata'] = self.file_entry['author_coredata'].get()
+        self.input_info['filepath_author_area'] = self.file_entry['author_area'].get()
+        self.input_info['filepath_author_affiliation'] = self.file_entry['author_affiliation'].get()
+        # fetch data
+        fetched = fetch_author_info(
+            self.input_info['author_id'],
+            self.input_info['api_key']
+        )
+        # store data
+        fetched['author'].to_csv(
+            os.path.join(self.input_info['filepath_wkdir'], self.input_info['filepath_author_coredata']),
+            index=False
+        )
+        fetched['subject_area'].to_csv(
+            os.path.join(self.input_info['filepath_wkdir'], self.input_info['filepath_author_area']),
+            index=False
+        )
+        fetched['affiliation'].to_csv(
+            os.path.join(self.input_info['filepath_wkdir'], self.input_info['filepath_author_affiliation']),
+            index=False
+        )
+
+# ------------------
+
+
+class AppFetchAffiliationInfo(tk.Toplevel):
+    def __init__(self, master=None):
+        super().__init__(master)
+        self.input_info = dict()  # store input data
+        self._create_text_boxs()
+        self._create_output_file_entry()
+        self._create_run_button()
+
+    def _create_text_boxs(self):
+        # 建立所有的文本输入框
+        # affiliation id text
+        # label
+        text_frame = tk.Frame(self)
+        text_frame.pack(padx=2, pady=2)
+        self.affiliation_id_textbox = TextBox(text_frame, '单位 ID（AFIL ID）输入框', width=40, textwrap=tk.NONE)
+        self.affiliation_id_textbox.grid(row=0, column=0)
+        self.api_key_textbox = TextBox(text_frame, 'API KEY 输入框', width=40, textwrap=tk.NONE)
+        self.api_key_textbox.grid(row=0, column=1)
+
+    def _create_output_file_entry(self):
+        # 建立输出文件名输入框
+        self.file_entry = dict()
+        self.output_file_frame = tk.Frame(self)
+        self.output_file_frame.pack(padx=2, pady=2)
+        title = tk.Label(self.output_file_frame, text='输出文件信息')
+        title.grid(row=0, column=0, columnspan=2)
+        lab = tk.Label(self.output_file_frame, text='工作目录')
+        lab.grid(row=1, column=0)
+        wk_entry = tk.StringVar()
+        wk_entry.set('')
+        self.file_entry['wkdir'] = tk.Entry(self.output_file_frame, textvariable=wk_entry)
+        self.file_entry['wkdir'].grid(row=1, column=1)
+        lab1 = tk.Label(self.output_file_frame, text='单位基本信息')
+        lab1.grid(row=2, column=0)
+        entry1 = tk.StringVar()
+        entry1.set('affiliation.csv')
+        self.file_entry['affiliation'] = tk.Entry(self.output_file_frame, textvariable=entry1)
+        self.file_entry['affiliation'].grid(row=2, column=1)
+
+    def _create_run_button(self):
+        # 建立运行按钮
+        self.run_button_frame = tk.Frame(self)
+        self.run_button_frame.pack(padx=2, pady=2)
+        self.run_button = tk.Button(self.run_button_frame, text='运行', command=self._run)
+        self.run_button.pack(side=tk.RIGHT, expand=True, anchor=tk.CENTER)
+
+    def _run(self):
+        self.input_info['api_key'] = self.api_key_textbox.get(1.0, tk.END).rstrip().split('\n')  # get api keys
+        self.input_info['affiliation_id'] = self.affiliation_id_textbox.get(1.0, tk.END).rstrip().split('\n')  # get scopus id
+        logger.debug('AppFetchAffiliationInfo: affiliation [{0}]'.format(self.input_info['affiliation_id'][0]))
+        # dirs and file names
+        self.input_info['filepath_wkdir'] = self.file_entry['wkdir'].get()
+        logger.debug('AppFetchAffiliationInfo: wkdir[{0}]'.format(self.input_info['filepath_wkdir']))
+        self.input_info['filepath_affiliation'] = self.file_entry['affiliation'].get()
+        logger.debug('AppFetchAffiliationInfo: affiliation path [{0}]'.format(self.input_info['filepath_affiliation']))
+        # fetch data
+        fetched = fetch_affiliation_info(
+            self.input_info['affiliation_id'],
+            self.input_info['api_key']
+        )
+        # store data
+        fetched.to_csv(
+            os.path.join(self.input_info['filepath_wkdir'], self.input_info['filepath_affiliation']),
+            index=False
+        )
 
 # ------------------
 # EOF

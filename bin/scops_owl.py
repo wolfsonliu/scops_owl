@@ -16,6 +16,8 @@ import logging
 # ------------------
 from scopsowl.scopsowlgui import AppFetchAffilAuthorDoc
 from scopsowl.scopsowlgui import AppFetchDocInfo
+from scopsowl.scopsowlgui import AppFetchAuthorInfo
+from scopsowl.scopsowlgui import AppFetchAffiliationInfo
 from scopsowl.guitool import TextBox
 from scopsowl.guitool import WidgetLogger
 
@@ -49,6 +51,8 @@ class ScopsOwl(tk.Frame):
         function_frame.pack(side=tk.TOP, expand=True, padx=2, pady=2)
         function_frame.grid_columnconfigure(0, weight=1)
         function_frame.grid_columnconfigure(1, weight=1)
+
+        # make AppFetchAffilAuthorDoc button
         def app_fetch_affil_author_doc():
             self.Apps['FetchAffilAuthorDoc'] = AppFetchAffilAuthorDoc(self)
         self.Buttons['FetchDoc'] = tk.Button(
@@ -58,6 +62,7 @@ class ScopsOwl(tk.Frame):
         )
         self.Buttons['FetchDoc'].grid(row=0, column=0, sticky=tk.W + tk.E + tk.N + tk.S)
 
+        # make AppFetchDocInfo button
         def app_fetch_doc_info():
             self.Apps['FetchDocInfo'] = AppFetchDocInfo(self)
         self.Buttons['FetchDocInfo'] = tk.Button(
@@ -67,10 +72,30 @@ class ScopsOwl(tk.Frame):
         )
         self.Buttons['FetchDocInfo'].grid(row=0, column=1, sticky=tk.W + tk.E + tk.N + tk.S)
 
+        # make AppFetchAuthorInfo button
+        def app_fetch_author_info():
+            self.Apps['FetchAuthorInfo'] = AppFetchAuthorInfo(self)
+        self.Buttons['FetchAuthorInfo'] = tk.Button(
+            function_frame,
+            text='获取作者基本信息（AUTHOR ID）',
+            command=app_fetch_author_info
+        )
+        self.Buttons['FetchAuthorInfo'].grid(row=1, column=0, sticky=tk.W + tk.E + tk.N + tk.S)
+
+        # make AppFetchAuthorInfo button
+        def app_fetch_affiliation_info():
+            self.Apps['FetchAffiliationInfo'] = AppFetchAffiliationInfo(self)
+        self.Buttons['FetchAffiliationInfo'] = tk.Button(
+            function_frame,
+            text='获取单位基本信息（AUTHOR ID）',
+            command=app_fetch_affiliation_info
+        )
+        self.Buttons['FetchAffiliationInfo'].grid(row=1, column=1, sticky=tk.W + tk.E + tk.N + tk.S)
+
     def _create_log_box(self):
         log_box = tk.Frame(self)
         log_box.pack(side=tk.BOTTOM, expand=True, padx=2, pady=2)
-        self.log_text_box = TextBox(log_box, '运行记录', width=40, textwrap=tk.NONE)
+        self.log_text_box = TextBox(log_box, '运行记录', width=80, textwrap=tk.NONE)
         self.log_text_box.grid(row=0, column=0)
         widget_handler = WidgetLogger(self.log_text_box)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
