@@ -35,7 +35,7 @@ setup(
     url='',
     packages=['scopsowl'],
     install_requires=[
-        'numpy', 'pandas', 'time', 'logging', 'requests', 'urllib3'
+        'numpy', 'pandas', 'time', 'logging', 'requests', 'urllib3', 'tkinter'
     ],
     package_dir={'scopsowl': 'scopsowl'},
     data_files=[('api', ['data/scopus_api_keys']), ('logconf', 'data/logging.conf')],
