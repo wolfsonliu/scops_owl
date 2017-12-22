@@ -38,7 +38,7 @@ logger = logging.getLogger('scops_owl.scopsowlgui')
 # ------------------
 class AppFetchAffilAuthorDoc(tk.Toplevel):
     def __init__(self, master=None):
-        super().__init__(master)
+        super().__init__(master, padx=4, pady=4)
         self.input_info = dict()  # store input data
         self._create_text_boxs()
         self._create_year_input()
@@ -119,6 +119,7 @@ class AppFetchAffilAuthorDoc(tk.Toplevel):
         self.input_info['year'] = self.year.get()
         self.input_info['yeardirection'] = self.year_direction.get().rstrip()
         self.input_info['filepath_wkdir'] = self.file_entry['wkdir'].get()
+        logger.debug('AppFetchAffilAuthorDoc: wkdir[{0}]'.format(self.input_info['filepath_wkdir']))
         self.input_info['filepath_author_doc'] = self.file_entry['author_doc'].get()
         self.input_info['filepath_doc_affiliation'] = self.file_entry['doc_affiliation'].get()
         self.input_info['filepath_doc'] = self.file_entry['doc'].get()
@@ -142,13 +143,14 @@ class AppFetchAffilAuthorDoc(tk.Toplevel):
             os.path.join(self.input_info['filepath_wkdir'], self.input_info['filepath_doc_affiliation']),
             index=False
         )
+        logger.info('获取文献列表完成。')
 
 # ------------------
 
 
 class AppFetchDocInfo(tk.Toplevel):
     def __init__(self, master=None):
-        super().__init__(master)
+        super().__init__(master, padx=4, pady=4)
         self.input_info = dict()  # store input data
         self._create_text_boxs()
         self._create_output_file_entry()
@@ -227,6 +229,7 @@ class AppFetchDocInfo(tk.Toplevel):
         self.input_info['scopus_id'] = self.scopus_id_textbox.get(1.0, tk.END).rstrip().split('\n')  # get scopus id
         # dirs and file names
         self.input_info['filepath_wkdir'] = self.file_entry['wkdir'].get()
+        logger.debug('AppFetchDocInfo: wkdir[{0}]'.format(self.input_info['filepath_wkdir']))
         self.input_info['filepath_document_coredata'] = self.file_entry['document_coredata'].get()
         self.input_info['filepath_document_author'] = self.file_entry['document_author'].get()
         self.input_info['filepath_document_affiliation'] = self.file_entry['document_affiliation'].get()
@@ -269,13 +272,14 @@ class AppFetchDocInfo(tk.Toplevel):
             os.path.join(self.input_info['filepath_wkdir'], self.input_info['filepath_document_keyword']),
             index=False
         )
+        logger.info('获取文献基本信息完成。')
 
 # ------------------
 
 
 class AppFetchAuthorInfo(tk.Toplevel):
     def __init__(self, master=None):
-        super().__init__(master)
+        super().__init__(master, padx=4, pady=4)
         self.input_info = dict()  # store input data
         self._create_text_boxs()
         self._create_output_file_entry()
@@ -336,6 +340,7 @@ class AppFetchAuthorInfo(tk.Toplevel):
         self.input_info['author_id'] = self.author_id_textbox.get(1.0, tk.END).rstrip().split('\n')  # get scopus id
         # dirs and file names
         self.input_info['filepath_wkdir'] = self.file_entry['wkdir'].get()
+        logger.debug('AppFetchAuthorInfo: wkdir[{0}]'.format(self.input_info['filepath_wkdir']))
         self.input_info['filepath_author_coredata'] = self.file_entry['author_coredata'].get()
         self.input_info['filepath_author_area'] = self.file_entry['author_area'].get()
         self.input_info['filepath_author_affiliation'] = self.file_entry['author_affiliation'].get()
@@ -357,6 +362,7 @@ class AppFetchAuthorInfo(tk.Toplevel):
             os.path.join(self.input_info['filepath_wkdir'], self.input_info['filepath_author_affiliation']),
             index=False
         )
+        logger.info('获取作者基本信息完成。')
 
 # ------------------
 
@@ -409,7 +415,8 @@ class AppFetchAffiliationInfo(tk.Toplevel):
 
     def _run(self):
         self.input_info['api_key'] = self.api_key_textbox.get(1.0, tk.END).rstrip().split('\n')  # get api keys
-        self.input_info['affiliation_id'] = self.affiliation_id_textbox.get(1.0, tk.END).rstrip().split('\n')  # get scopus id
+        self.input_info['affiliation_id'] = self.affiliation_id_textbox.get(1.0, tk.END).rstrip().split('\n')
+        # get scopus id
         logger.debug('AppFetchAffiliationInfo: affiliation [{0}]'.format(self.input_info['affiliation_id'][0]))
         # dirs and file names
         self.input_info['filepath_wkdir'] = self.file_entry['wkdir'].get()
@@ -426,6 +433,7 @@ class AppFetchAffiliationInfo(tk.Toplevel):
             os.path.join(self.input_info['filepath_wkdir'], self.input_info['filepath_affiliation']),
             index=False
         )
+        logger.info('获取单位基本信息完成。')
 
 # ------------------
 # EOF

@@ -39,7 +39,7 @@ logger.setLevel(logging.DEBUG)
 class ScopsOwl(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
-        self.pack(expand=True, padx=4, pady=4, ipadx=2, ipady=2)
+        self.pack(expand=False, padx=4, pady=4)
         self.Apps = dict()
         self.Buttons = dict()
         self._create_functions()
@@ -98,8 +98,12 @@ class ScopsOwl(tk.Frame):
         self.log_text_box = TextBox(log_box, '运行记录', width=80, textwrap=tk.NONE)
         self.log_text_box.grid(row=0, column=0)
         widget_handler = WidgetLogger(self.log_text_box)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        widget_handler.setFormatter(formatter)
+        debug_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        info_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        if logger.level == logging.DEBUG:
+            widget_handler.setFormatter(debug_formatter)
+        else:
+            widget_handler.setFormatter(info_formatter)
         logger.addHandler(widget_handler)
 
 

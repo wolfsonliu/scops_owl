@@ -561,20 +561,30 @@ def fetch_doc(affiliation_ids, author_ids, pubyear, yeardirection, api_keys):
     document = list()  # scopus_id, title, eid, dc:creator, citedby_count
     doc_affiliation = list()  # scopus_id, affiliation_name, affiliation_city, affiliation_country
     api_key_i = 0
-    pubyearsearch = make_query_pubyear(pubyear, yeardirection)
+    pub_year_search = make_query_pubyear(pubyear, yeardirection)
     affiliation_id = 'none'
     author_id = 'none'
+    i = 1
+    total_number = len(author_ids)
     try:
         for author_id, affiliation_id in zip(author_ids, affiliation_ids):
+            logger.info(
+                '共有 {0} 获取 {1} : [作者 ID {2}, 单位 ID {3}] '.format(
+                    total_number,
+                    i,
+                    author_id,
+                    affiliation_id
+                )
+            )
             start = 0
-            while_loop = True
             query_seq = '+'.join(
                 [
                     make_query_author_id(author_id),
                     make_query_affiliation_id(affiliation_id),
-                    pubyearsearch
+                    pub_year_search
                 ]
             )
+            while_loop = True
             while while_loop:
                 quota_while = True
                 # api_key quota check
@@ -587,7 +597,7 @@ def fetch_doc(affiliation_ids, author_ids, pubyear, yeardirection, api_keys):
                             start, 200, api_keys[api_key_i]
                         )
                         quota_while = False
-                    except QuotaExceeded:
+                    except QuotaExceeded as e:
                         # deal with the api key running out of quota
                         # quota will be refreshed per week
                         # series title,          20000
@@ -601,6 +611,8 @@ def fetch_doc(affiliation_ids, author_ids, pubyear, yeardirection, api_keys):
                         # scopus search,         20000
                         api_key_i += 1
                         if api_key_i == len(api_keys):
+                            ex = ' '.join(['fetch_document_info:', e])
+                            logger.exception(ex)
                             raise NoAvailableKeys('Usable key exhausted.')
 
                 start += 200
@@ -718,16 +730,17 @@ def fetch_doc(affiliation_ids, author_ids, pubyear, yeardirection, api_keys):
                 total_count = int(doc_info['total_count'])
                 if start > total_count:
                     while_loop = False
-    except (ConnectionError, NewConnectionError, MaxRetryError):
+            i += 1  # calculate the process ith of all
+    except (ConnectionError, NewConnectionError, MaxRetryError) as e:
         # if the network has problem, record the id of author and affiliation
-        errormessage = ' '.join(
-             [
-                  time.strftime("%Y-%m-%d %H:%M"),
-                  'Affiliation {0} Author {1} stopped.\n'.format(affiliation_id, author_id)
-             ]
+        error = ' '.join(
+            [
+                'fetch_document_info:',
+                time.strftime('%Y-%m-%d %H:%M'), e,
+                'Affiliation {0} Author {1} stopped.\n'.format(affiliation_id, author_id)
+            ]
         )
-        with open('fetch_doc_broken.txt', 'a') as f:
-            f.write(errormessage)
+        logger.error(error)
     finally:
         # change list to DataFrame
         df_author_doc = pd.DataFrame(author_doc)

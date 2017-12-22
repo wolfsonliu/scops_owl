@@ -15,9 +15,10 @@ The python scripts in [**scops_owl**](https://github.com/wolfsonliu/scops_owl) a
 
 ## 依赖需求 ##
 
-该软件由 [Python 3](https://www.python.org/) 开发，依赖于 [numpy](http://www.numpy.org/)，[pandas](http://pandas.pydata.org/)，
+该软件使用 [Python 3](https://www.python.org/) 语言开发，依赖于 [numpy](http://www.numpy.org/)，[pandas](http://pandas.pydata.org/)，
 [time](https://docs.python.org/3.6/library/time.html)，[logging](https://docs.python.org/3/library/logging.html?highlight=logging#module-logging)，
-[requests]()，[urllib3]()，[tkinter](https://docs.python.org/3/library/tkinter.html)
+[requests](http://docs.python-requests.org/en/master/)，[urllib3](https://pypi.python.org/pypi/urllib3)，
+[tkinter](https://docs.python.org/3/library/tkinter.html)等包。
 
 ## 安装说明 ##
 
